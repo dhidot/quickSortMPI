@@ -3,6 +3,7 @@ from mpi4py import MPI
 import numpy as np
 import time
 from operator import itemgetter
+import psutil
 
 # Assing variabel untuk komunikasi antar proses
 comm = MPI.COMM_WORLD # Mendefinisikan komunikasi antar proses
@@ -55,37 +56,46 @@ if rank == 0:
     # Generate angka random dalam array dengan ukuran n
     numbers = np.arange(int(arraySize))
     np.random.shuffle(numbers)
-    # print("Generated list of size " + str(arraySize) + " is: " + str(numbers))
-
     chunks = np.array_split(numbers, size)
 else:
     chunks = None
 
-# Memulai script dengan proses paralel
-start_time = time.time()
-
-# scatter data ke semua proses
+# Scatter data ke semua proses
 chunk = comm.scatter(chunks, root=0)
-# print("Process " + str(rank) + " has this chunk of data: " + str(chunk))
 
-# panggil fungsi quickSort
+# Start timer
+start = time.time()
+
+# Panggil fungsi quicksort
 quickSort(chunk, 0, len(chunk) - 1)
 
-# gather data dari semua proses
-sortedArrays = comm.gather(chunk, root=0)
+# end timer
+end = time.time()
 
+# Gather data dari semua proses
+gathered = comm.gather(chunk, root=0)
+
+# Hitung waktu eksekusi
+elapsed = end - start
+
+# Gather waktu eksekusi dari semua proses
+gatheredTime = comm.gather(elapsed, root=0)
+
+# Sorted array
+Arrays = comm.gather(chunk, root=0)
 if rank == 0:
-    iteratorNumbers = np.zeros((len(sortedArrays),), dtype=int)
+    iteratorNumbers = np.zeros((len(Arrays),), dtype=int)
     sortedArray = []
-    for my_index in range(0, int(arraySize)):
+    for myIndex in range(0, int(arraySize)):
         iterator = [
-            (i, (99999999 if iteratorNumbers[i] >= len(sortedArrays[i]) else sortedArrays[i][iteratorNumbers[i]])) for i
-            in range(0, len(sortedArrays))]
+            (i, (99999999 if iteratorNumbers[i] >= len(Arrays[i]) else Arrays[i][iteratorNumbers[i]])) for i
+            in range(0, len(Arrays))]
         res = min(iterator, key=itemgetter(1))
         iteratorNumbers[res[0]] = iteratorNumbers[res[0]] + 1
         sortedArray.append(res[1])
         iterator = []
 
-    # End of script
-    executionTime = (time.time() - start_time)
-    print("\n\n Waktu Eksekusi --- %s second ---" % executionTime)
+    totalTime = sum(gatheredTime)
+    averageTime = totalTime / comm.size
+    print("Average time taken by all processes is: '%f' " % averageTime + " seconds")
+    print("CPU Usage %.1f " % (psutil.cpu_percent(averageTime)) + "%")

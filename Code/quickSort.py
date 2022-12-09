@@ -1,7 +1,10 @@
 import numpy as np
 import time
+import psutil
 
 # Fungsi untuk menemukan posisi partisi
+
+
 def partition(array, low, high):
     # pilih elemen paling kanan sebagai pivot
     pivot = array[high]
@@ -42,17 +45,16 @@ def quickSort(array, low, high):
         quickSort(array, pi + 1, high)
 
 
-# Driver code
-start_time = time.time()
-
 # Ukuran array sesuai dengan inputan user
 arraySize = input("Please enter array size: ")
-
 # Generate angka random dalam array dengan ukuran n menggunakan numpy
+
 numbers = np.arange(int(arraySize))
 np.random.shuffle(numbers)
 # print("Generated list of size " + str(arraySize) + " is:" + str(numbers))
+start_time = time.time()
 quickSort(numbers, 0, len(numbers) - 1)
 
-print("\n\n Execution Time --- %s seconds ---" % (time.time() - start_time))
-
+executionTime = time.time() - start_time
+print(" Execution Time --- %0.7f seconds ---" % executionTime)
+print(" CPU Usage --- %0.7f ---" % (psutil.cpu_percent(interval=1)))
