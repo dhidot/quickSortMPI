@@ -13,7 +13,7 @@ Project ini merupakan project yang mengimplementasikan Message Passing Interface
 ```
 C:\Program Files\Microsoft MPI\bin
 ```
-to your system variabel
+  to your system variabel
 
 ## How to install mpi4py
 1. on command line / terminal 
@@ -26,7 +26,6 @@ pip install mpi4py
 mpiexec -n [num of process] python [file name] 
 ```
 
-example 
 ```
-mpiexec -n 5 python quickSort.py
+mpiexec -n 5 python quickSortMPI.py
 ```
